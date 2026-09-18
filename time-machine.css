@@ -12,12 +12,55 @@
 .hero-type {
   padding-top: 50px;
 }
+.hero-notes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 18px;
+  margin-top: 18px;
+}
+.hero-notes .name-annotation {
+  position: static;
+  transform: none;
+  font-size: 9px;
+}
+.time-machine-toggle {
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font:
+    400 10px/1.5 "IBM Plex Mono",
+    monospace;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.time-machine-toggle > span {
+  margin-left: 8px;
+}
+.time-machine-toggle:hover {
+  text-decoration-thickness: 2px;
+}
 #time-machine {
+  /* Open beside the trigger, then keep these bounds while the page changes. */
+  --cyan: #f4f1e8;
+  --ink: #202825;
+  --orange: #fa8251;
+  --rule: #657873;
+  position: fixed;
+  left: var(--panel-left, 12px);
+  top: var(--panel-top, 12px);
+  z-index: 30;
+  margin: 0;
   display: block;
-  width: 100%;
+  width: min(360px, calc(100% - 24px));
+  height: 116px;
   min-width: 0;
   min-height: 0;
-  padding: 17px 18px 13px;
+  padding: 12px 16px;
   border: 1px solid var(--rule);
   background: var(--cyan);
   color: var(--ink);
@@ -25,6 +68,7 @@
     10px/1.6 "IBM Plex Mono",
     monospace;
   cursor: default;
+  box-shadow: 0 4px 20px #0003;
   view-transition-name: era-control;
 }
 #time-machine[hidden] {
@@ -36,6 +80,7 @@
   align-items: center;
   gap: 10px;
   white-space: nowrap;
+  height: 32px;
 }
 .timeline-heading label {
   font-size: 9px;
@@ -43,19 +88,36 @@
 }
 #era-label {
   font-weight: 500;
+  margin-left: auto;
+}
+#close-time-machine {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: 20px/1 monospace;
+  cursor: pointer;
+}
+#close-time-machine:focus-visible {
+  outline-offset: 0;
 }
 .era-slider {
   --dial-position: 100%;
   display: block;
   width: 100%;
   height: 44px;
-  margin: 5px 0 -3px;
+  margin: 0;
   padding: 0;
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
   cursor: ew-resize;
   touch-action: none;
+}
+.era-slider:focus-visible {
+  outline-offset: 0;
 }
 .era-slider::-webkit-slider-runnable-track {
   height: 5px;
@@ -98,11 +160,6 @@
   justify-content: space-between;
   font-size: 8px;
 }
-#era-hint {
-  margin-top: 12px;
-  font-size: 9px;
-  line-height: 1.7;
-}
 .hero-console .chip-figure {
   width: 78%;
   max-width: 290px;
@@ -143,9 +200,13 @@
 ::view-transition-new(root) {
   animation: era-in 0.32s ease both;
 }
-::view-transition-old(era-control),
+::view-transition-group(era-control),
 ::view-transition-new(era-control) {
-  animation-duration: 0.25s;
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(era-control) {
+  display: none;
 }
 @keyframes era-out {
   to {
@@ -441,19 +502,6 @@ body,
   padding-inline: 6px;
 }
 
-@media (max-width: 1100px) {
-  #time-machine {
-    padding-inline: 12px;
-  }
-  .timeline-heading {
-    gap: 6px;
-    font-size: 9px;
-  }
-  .timeline-heading label {
-    font-size: 8px;
-    letter-spacing: 0;
-  }
-}
 @media (max-width: 560px) {
   .hero .hero-main {
     grid-template-columns: 1fr;
@@ -469,19 +517,6 @@ body,
     max-width: 245px;
     width: 76%;
     margin-top: 30px;
-  }
-  #time-machine {
-    padding: 14px 16px 12px;
-  }
-  .timeline-heading {
-    font-size: 11px;
-  }
-  .timeline-heading label {
-    font-size: 9px;
-    letter-spacing: 0.04em;
-  }
-  .timeline-ticks {
-    font-size: 9px;
   }
   .easter-body {
     padding: 20px;
@@ -502,6 +537,8 @@ body,
   }
 }
 @media print {
+  #time-machine,
+  .time-machine-toggle,
   .hero-console,
   .easter-dialog {
     display: none !important;
@@ -512,16 +549,6 @@ body,
   }
 }
 
-.time-machine-slot {
-  min-width: 0;
-}
-#time-machine.is-scrubbing {
-  position: fixed;
-  top: var(--dial-top);
-  left: var(--dial-left);
-  width: var(--dial-width);
-  z-index: 60;
-}
 .artifact-face {
   display: none;
 }

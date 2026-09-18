@@ -17,12 +17,95 @@ async function settle(page, era) {
   );
   await page.evaluate(() => document.fonts.ready);
 }
-async function selectEra(page, era) {
+async function openTimeMachine(page) {
+  if (!(await page.locator("#time-machine").isVisible()))
+    await page.locator("#time-machine-toggle").click();
+  await expect(page.getByRole("slider")).toBeVisible();
+}
+async function selectEra(page, era, keepOpen = false) {
+  await openTimeMachine(page);
   const slider = page.getByRole("slider", { name: "TIME MACHINE" });
   await slider.focus();
   await slider.press("Home");
   for (let i = 0; i < eras.indexOf(era); i++) await slider.press("ArrowRight");
   await settle(page, era);
+  if (!keepOpen)
+    await page.getByRole("button", { name: "Close time machine" }).click();
+}
+
+for (const width of [320, 390, 768, 1440]) {
+  test(`optional time machine stays still when open and dismisses at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/");
+    const dock = page.locator("#time-machine");
+    await expect(dock).toBeHidden();
+    await expect(page.locator("#time-machine-toggle")).toBeVisible();
+    expect(
+      await page.evaluate(() => getComputedStyle(document.body).paddingBottom),
+    ).toBe("0px");
+    await openTimeMachine(page);
+    await expect(dock).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    const initial = await dock.boundingBox();
+    expect(initial.y + initial.height).toBeLessThan(844);
+    expect(initial.x).toBeGreaterThanOrEqual(12);
+    expect(initial.x + initial.width).toBeLessThanOrEqual(width - 12);
+    // Record every animation frame, including the moment the drag/transition ends.
+    await dock.evaluate((el) => {
+      window.dockSamples = [];
+      const sample = () => {
+        const { x, y, width, height } = el.getBoundingClientRect();
+        window.dockSamples.push({ x, y, width, height });
+        window.dockFrame = requestAnimationFrame(sample);
+      };
+      sample();
+    });
+    for (const era of eras) {
+      await selectEra(page, era, true);
+      await expect(dock).toBeInViewport();
+    }
+    const samples = await page.evaluate(() => {
+      cancelAnimationFrame(window.dockFrame);
+      return window.dockSamples;
+    });
+    for (const key of ["x", "y", "width", "height"]) {
+      expect(
+        Math.max(
+          ...samples.map((sample) => Math.abs(sample[key] - initial[key])),
+        ),
+        key,
+      ).toBeLessThan(1);
+    }
+    const result = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .analyze();
+    expect(result.violations).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`optional-panel-${width}.png`),
+    });
+    await page.keyboard.press("Escape");
+    await expect(dock).toBeHidden();
+    await expect(page.locator("#time-machine-toggle")).toBeFocused();
+    await openTimeMachine(page);
+    await page.locator("h1").click();
+    await expect(dock).toBeHidden();
+    await openTimeMachine(page);
+    await page.evaluate(() =>
+      scrollTo({ top: document.body.scrollHeight, behavior: "instant" }),
+    );
+    await expect(dock).toBeHidden();
+    await expect(page.locator("#time-machine-toggle")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+    await page.screenshot({
+      path: testInfo.outputPath(`quiet-hero-${width}.png`),
+    });
+  });
 }
 
 for (const era of eras.slice(0, -1)) {
@@ -54,7 +137,8 @@ for (const era of eras.slice(0, -1)) {
         ),
         JSON.stringify(overflow),
       ).toBe(true);
-      await expect(page.getByRole("slider")).toBeInViewport();
+      await expect(page.locator("#time-machine")).toBeHidden();
+      await expect(page.locator("#time-machine-toggle")).toBeInViewport();
       await expect(
         page.getByRole("heading", { name: "Sustainable edge vision" }),
       ).toBeVisible();
@@ -101,8 +185,10 @@ test("dragging crosses all six eras without moving the slider or losing the poin
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
+  await openTimeMachine(page);
   const slider = page.getByRole("slider");
   const box = await slider.boundingBox();
+  const dockBox = await page.locator("#time-machine").boundingBox();
   await page.mouse.move(box.x + box.width - 7, box.y + box.height / 2);
   await page.mouse.down();
   await page.mouse.move(box.x + 7, box.y + box.height / 2, { steps: 65 });
@@ -112,6 +198,7 @@ test("dragging crosses all six eras without moving the slider or losing the poin
   await page.mouse.up();
   await settle(page, "terminal");
   await expect(slider).toHaveValue("0");
+  expect(await page.locator("#time-machine").boundingBox()).toEqual(dockBox);
   const terminalBox = await slider.boundingBox();
   await page.mouse.move(
     terminalBox.x + 7,
@@ -128,6 +215,7 @@ test("dragging crosses all six eras without moving the slider or losing the poin
   await page.mouse.up();
   await settle(page, "modern");
   await expect(slider).toHaveValue("100");
+  expect(await page.locator("#time-machine").boundingBox()).toEqual(dockBox);
   expect(errors).toEqual([]);
 });
 
@@ -145,9 +233,11 @@ test("touch dragging stays attached to the dial as mobile layouts change", async
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("http://127.0.0.1:4173/");
+    await openTimeMachine(page);
     const slider = page.getByRole("slider");
     await slider.scrollIntoViewIfNeeded();
     const box = await slider.boundingBox();
+    const dockBox = await page.locator("#time-machine").boundingBox();
     const client = await context.newCDPSession(page);
     const y = box.y + box.height / 2;
     const right = box.x + box.width - 7;
@@ -171,7 +261,7 @@ test("touch dragging stays attached to the dial as mobile layouts change", async
     });
     await settle(page, "terminal");
     await expect(slider).toHaveValue("0");
-    await expect(page.locator("#time-machine")).not.toHaveClass(/is-scrubbing/);
+    expect(await page.locator("#time-machine").boundingBox()).toEqual(dockBox);
     expect(errors).toEqual([]);
   } finally {
     await context.close();
@@ -260,13 +350,14 @@ test("eras preserve unfinished messages and restore the modern palette", async (
 test("keyboard selection persists in this tab", async ({ page }) => {
   await page.goto("/");
   await selectEra(page, "desktop");
-  await expect(page.getByRole("slider")).toHaveAttribute(
+  await expect(page.locator("#era-slider")).toHaveAttribute(
     "aria-valuetext",
     "2004, Desktop",
   );
   await page.reload();
   await settle(page, "desktop");
-  await expect(page.getByRole("slider")).toHaveValue("60");
+  await expect(page.locator("#era-slider")).toHaveValue("60");
+  await expect(page.locator("#time-machine")).toBeHidden();
 });
 
 for (const mode of ["reduced motion", "unavailable transitions and storage"]) {

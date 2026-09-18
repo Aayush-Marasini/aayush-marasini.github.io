@@ -52,13 +52,14 @@
   ];
   const root = document.documentElement;
   const panel = document.querySelector("#time-machine");
+  const panelToggle = document.querySelector("#time-machine-toggle");
   const slider = document.querySelector("#era-slider");
   const output = document.querySelector("#era-label");
   const trigger = document.querySelector("#artifact-trigger");
   const dialog = document.querySelector("#easter-dialog");
   const content = document.querySelector("#easter-content");
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  if (!panel || !slider || !dialog) return;
+  if (!panel || !panelToggle || !slider || !dialog) return;
 
   let current = 5;
   let requested = 5;
@@ -172,13 +173,67 @@
   slider.value = String(current * 20);
   render(current);
   choose(Number(slider.value), false);
-  panel.hidden = false;
+  panelToggle.hidden = false;
   trigger.disabled = false;
   root.dataset.timeMachineReady = "true";
 
-  // Hold the dial under the pointer while the surrounding layout changes.
-  const slot = panel.parentElement;
+  // The optional panel stays put while open. The page itself stays unobstructed.
   let drag;
+  let panelScrollY = scrollY;
+  function closePanel(restoreFocus = false) {
+    if (panel.hidden) return;
+    releaseDial();
+    activeTransition?.skipTransition();
+    panel.hidden = true;
+    panelToggle.setAttribute("aria-expanded", "false");
+    if (restoreFocus) panelToggle.focus({ preventScroll: true });
+  }
+  panelToggle.addEventListener("click", () => {
+    if (!panel.hidden) {
+      closePanel();
+      return;
+    }
+    const anchor = panelToggle.getBoundingClientRect();
+    const width = Math.min(360, innerWidth - 24);
+    const height = 116;
+    const left = Math.max(12, Math.min(anchor.left, innerWidth - width - 12));
+    const top =
+      anchor.bottom + 8 + height <= innerHeight - 12
+        ? anchor.bottom + 8
+        : Math.max(12, anchor.top - height - 8);
+    panel.style.setProperty("--panel-left", `${left}px`);
+    panel.style.setProperty("--panel-top", `${top}px`);
+    panelScrollY = scrollY;
+    panel.hidden = false;
+    panelToggle.setAttribute("aria-expanded", "true");
+    slider.focus({ preventScroll: true });
+  });
+  document
+    .querySelector("#close-time-machine")
+    .addEventListener("click", () => closePanel(true));
+  document.addEventListener("pointerdown", (event) => {
+    if (!panel.contains(event.target) && !panelToggle.contains(event.target))
+      closePanel();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !panel.hidden) {
+      event.preventDefault();
+      closePanel(true);
+    }
+  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      // A scroll that brought the trigger into view may still have a queued event.
+      // Dismiss only when the viewport actually moves after the panel opens.
+      if (panel.hidden || drag) panelScrollY = scrollY;
+      else if (Math.abs(scrollY - panelScrollY) > 1) closePanel();
+    },
+    { passive: true },
+  );
+  window.addEventListener("resize", () => closePanel(true));
+
+  // Pointer coordinates remain independent of changes to the chosen era's layout.
   function moveDial(event) {
     if (!drag || event.pointerId !== drag.pointerId) return;
     const fraction = (event.clientX - drag.left - 6.5) / (drag.width - 13);
@@ -186,15 +241,11 @@
     slider.dispatchEvent(new Event("input"));
   }
   function releaseDial() {
-    if (!panel.classList.contains("is-scrubbing")) return;
-    if (drag && slider.hasPointerCapture(drag.pointerId))
+    if (!drag) return;
+    if (slider.hasPointerCapture(drag.pointerId))
       slider.releasePointerCapture(drag.pointerId);
     drag = undefined;
     slider.dispatchEvent(new Event("change"));
-    panel.classList.remove("is-scrubbing");
-    slot.style.minHeight = "";
-    for (const prop of ["--dial-top", "--dial-left", "--dial-width"])
-      panel.style.removeProperty(prop);
   }
   slider.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
@@ -202,12 +253,6 @@
     slider.focus({ preventScroll: true });
     const track = slider.getBoundingClientRect();
     drag = { pointerId: event.pointerId, left: track.left, width: track.width };
-    const box = panel.getBoundingClientRect();
-    slot.style.minHeight = `${box.height}px`;
-    panel.style.setProperty("--dial-top", `${box.top}px`);
-    panel.style.setProperty("--dial-left", `${box.left}px`);
-    panel.style.setProperty("--dial-width", `${box.width}px`);
-    panel.classList.add("is-scrubbing");
     slider.setPointerCapture(event.pointerId);
     moveDial(event);
   });

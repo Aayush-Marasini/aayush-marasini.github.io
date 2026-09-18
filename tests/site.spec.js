@@ -46,7 +46,8 @@ for (const width of [320, 360, 390, 600, 768, 1024, 1440]) {
     ).toBe(true);
     await expect(page.locator(".edition")).toBeVisible();
     await expect(page.locator(".site-header img")).toHaveCount(0);
-    await expect(page.locator("#time-machine")).toBeVisible();
+    await expect(page.locator("#time-machine")).toBeHidden();
+    await expect(page.locator("#time-machine-toggle")).toBeVisible();
     await expect(
       page.getByRole("link", { name: "VIDYA", exact: true }),
     ).toHaveAttribute("href", "https://www.instagram.com/vidya_nepal/");
