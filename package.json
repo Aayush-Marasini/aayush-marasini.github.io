@@ -1,0 +1,19 @@
+{
+  "name": "aayush-marasini-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A printed-paper portfolio for Aayush Marasini.",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "check": "node --check script.js && node --check time-machine.js && node --check server.mjs",
+    "test": "playwright test",
+    "format": "prettier --write index.html styles.css eras.css time-machine.css script.js time-machine.js server.mjs playwright.config.js tests/*.spec.js scripts/download-fonts.mjs package.json README.md"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "prettier": "3.9.8"
+  }
+}

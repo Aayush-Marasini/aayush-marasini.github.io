@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 360" fill="none">
+  <defs>
+    <pattern id="dots" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#202825"/></pattern>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 5 5 0" stroke="#202825" stroke-width=".55"/></pattern>
+    <pattern id="cells" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0H8V8H0Z" stroke="#202825" stroke-width=".65"/></pattern>
+  </defs>
+  <g stroke="#526d66" stroke-width=".7"><path d="M0 60H420M0 120H420M0 180H420M0 240H420M0 300H420M30 0V360M90 0V360M150 0V360M210 0V360M270 0V360M330 0V360M390 0V360" stroke-dasharray="1 5"/></g>
+  <circle cx="207" cy="176" r="141" stroke="#202825" stroke-width=".8" stroke-dasharray="3 5"/>
+  <g stroke="#202825" stroke-width="1.1"><path d="M3 14H20M11 6V22M397 14H414M405 6V22M3 341H20M11 333V349M397 341H414M405 333V349"/><path d="M97 55h220v239H97z" stroke-width="1.5"/><path d="M104 62h206v225H104z"/><path d="M87 44h240v261H87z" stroke-width=".6"/>
+    <path d="M115 55V30l-15-15M130 55V24M145 55V8M160 55V30l-9-9M175 55V0M190 55V19M205 55V4M220 55V19M235 55V0M250 55V25l10-10M265 55V15M280 55V0M295 55V26l20-20"/>
+    <path d="M97 74H58L37 53H12M97 90H41M97 106H60L25 71H0M97 122H16M97 138H45L25 118H4M97 154H0M97 170H35L21 184H0M97 186H48L18 216H0M97 202H57L30 229M97 218H68L31 255H0M97 234H59L17 276H0M97 250H70L29 291H3M97 266H75L31 310"/>
+    <path d="M317 74H349L378 45H420M317 90H368L390 68H420M317 106H401M317 122H356L388 90H420M317 138H397M317 154H420M317 170H375L397 192H420M317 186H354L405 237H420M317 202H342L364 224H420M317 218H331L374 261H420M317 234H345L385 274H415M317 250H329L374 295H420"/>
+    <path d="M115 294V320L95 340M130 294V347M145 294V326M160 294V345M175 294V324L155 344M190 294V360M205 294V326M220 294V347M235 294V334L258 357M250 294V319M265 294V347M280 294V324M295 294V310L325 340"/>
+  </g>
+  <g fill="#c6e9e8" stroke="#202825" stroke-width="1.4"><path d="M118 76h76v66h-76zM220 76h76v66h-76zM118 208h76v66h-76zM220 208h76v66h-76z"/></g>
+  <g fill="url(#hatch)"><path d="M123 81h66v45h-66zM225 81h66v45h-66zM123 213h66v45h-66zM225 213h66v45h-66z"/></g>
+  <g stroke="#202825" stroke-width=".75"><path d="M156 142v19m102-19v19M156 190v18m102-18v18M194 109h26M194 240h26"/><path d="M115 154h184v43H115z"/></g>
+  <path fill="#202825" d="M120 159h174v33H120z"/>
+  <path fill="url(#cells)" d="M201 76h12v67h-12zM201 208h12v66h-12z"/>
+  <g fill="#202825" font-family="monospace" font-size="6.8" letter-spacing="1"><text x="131" y="137">CORE_00</text><text x="233" y="137">CORE_01</text><text x="131" y="269">CORE_02</text><text x="233" y="269">CORE_03</text><text x="41" y="332" transform="rotate(-90 41 332)">DATA IN / DATA OUT</text></g>
+  <text x="135" y="180" fill="#c6e9e8" font-family="monospace" font-size="10.5" letter-spacing="2">SHARED MEMORY</text>
+  <g fill="#c6e9e8" stroke="#202825" stroke-width="1"><circle cx="12" cy="53" r="3"/><circle cx="41" cy="90" r="3"/><circle cx="16" cy="122" r="3"/><circle cx="31" cy="310" r="3"/><circle cx="401" cy="106" r="3"/><circle cx="397" cy="138" r="3"/><circle cx="325" cy="340" r="3"/><circle cx="145" cy="326" r="3"/><circle cx="130" cy="24" r="3"/></g>
+</svg>
